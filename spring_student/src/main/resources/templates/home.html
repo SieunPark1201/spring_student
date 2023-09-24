@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Management System</title>
+</head>
+<body>
+<h1>Student Management System</h1>
+
+<form th:action="@{/}" method="post">
+    <label for="searchName">Search by Name:</label>
+    <input type="text" id="searchName" name="searchName">
+    <button type="submit">Search</button>
+</form>
+
+<div th:if="${message}">
+    <p th:text="${message}" style="color: red;"></p>
+</div>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>id</th>
+        <th>name</th>
+        <th>address</th>
+        <th>school</th>
+        <th>major</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="student : ${students}">
+        <td th:text="${student.id}"></td>
+        <td th:text="${student.name}" th:data-name="${student.name}" onclick="showStudentInfo(this.getAttribute('data-name'))"></td>
+        <td th:text="${student.address}"></td>
+        <td th:text="${student.school}"></td>
+        <td th:text="${student.major}"></td>
+        <td>
+            <button th:data-student-id="${student.id}" onclick="openUpdatePopup(this.getAttribute('data-student-id'))">Update</button>
+            <form th:action="@{/update/{id}(id=${student.id})}" method="post">
+                <input type="hidden" name="name" th:value="${student.name}">
+            </form>
+            <form th:action="@{/delete/{id}(id=${student.id})}" method="post">
+                <input type="hidden" name="name" th:value="${student.name}">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div th:if="${selectedStudent}">
+    <h2>Student Information</h2>
+    <p>Name: <span th:text="${selectedStudent.name}"></span></p>
+    <p>Address: <span th:text="${selectedStudent.address}"></span></p>
+    <p>Major: <span th:text="${selectedStudent.major}"></span></p>
+    <p>School: <span th:text="${selectedStudent.school}"></span></p>
+</div>
+
+<div id="updatePopup" style="display: none;">
+    <h2>Update Student</h2>
+    <form th:id="updateForm" th:action="@{/update/{id}(id=__STUDENT_ID__)}" method="post">
+        <input type="hidden" name="name" th:id="updateName">
+        <label for="updatedAddress">Address:</label>
+        <input type="text" id="updatedAddress" name="address">
+        <label for="updatedMajor">Major:</label>
+        <input type="text" id="updatedMajor" name="major">
+        <label for="updatedSchool">School:</label>
+        <input type="text" id="updatedSchool" name="school">
+        <button type="submit">Update</button>
+    </form>
+    <button onclick="closeUpdatePopup()">Cancel</button>
+</div>
+
+<h2>Create New Student</h2>
+<form th:action="@{/create}" method="post">
+    <label for="newName">Name:</label>
+    <input type="text" id="newName" name="name">
+    <label for="newAddress">Address:</label>
+    <input type="text" id="newAddress" name="address">
+    <label for="newMajor">Major:</label>
+    <input type="text" id="newMajor" name="major">
+    <label for="newSchool">School:</label>
+    <input type="text" id="newSchool" name="school">
+    <button type="submit">Create</button>
+</form>
+
+<script th:inline="javascript">
+        function showStudentInfo(name) {
+            fetch('/getStudentInfo?name=' + name)
+            .then(response => response.json())
+            .then(data => {
+                document.querySelector('#selectedStudentInfo').innerHTML =
+                    'Name: ' + data.name + '<br>' +
+                    'Address: ' + data.address + '<br>' +
+                    'Major: ' + data.major + '<br>' +
+                    'School: ' + data.school;
+            });
+        }
+
+
+    function openUpdatePopup(id) {
+        const form = document.getElementById('updateForm');
+        const popup = document.getElementById('updatePopup');
+        const student = document.querySelector(`[data-student-id="${id}"]`);
+
+        form.action = form.action.replace('__STUDENT_ID__', id);
+        document.getElementById('updatedAddress').value = student.parentNode.nextElementSibling.textContent;
+        document.getElementById('updatedMajor').value = student.parentNode.nextElementSibling.nextElementSibling.textContent;
+        document.getElementById('updatedSchool').value = student.parentNode.nextElementSibling.nextElementSibling.nextElementSibling.textContent;
+
+        popup.style.display = 'block';
+    }
+
+    function closeUpdatePopup() {
+        document.getElementById('updatePopup').style.display = 'none';
+    }
+</script>
+</body>
+</html>
